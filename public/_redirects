@@ -1,0 +1,3 @@
+# Single-page app: every route is served by index.html and resolved client-side
+# by expo-router. Without this, reloading or deep-linking any path 404s.
+/*    /index.html   200

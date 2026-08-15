@@ -45,8 +45,23 @@ export function Screen({
   const insets = useInsets();
   const top = edgeToEdge ? 0 : insets.top;
 
+  /**
+   * Inside a ScrollView the wrapper only needs to grow so short content still
+   * fills the screen. Standalone it must also be able to *shrink* — with the
+   * default flexShrink of 0 a tall child (a screen's own ScrollView) stretches
+   * the wrapper past the viewport instead of being bounded by it, and then
+   * nothing can scroll at all.
+   */
   const inner = (
-    <View style={[{ paddingHorizontal: gutter, flexGrow: 1 }, contentStyle]}>{children}</View>
+    <View
+      style={[
+        { paddingHorizontal: gutter },
+        scroll ? { flexGrow: 1 } : { flex: 1, minHeight: 0 },
+        contentStyle,
+      ]}
+    >
+      {children}
+    </View>
   );
 
   return (

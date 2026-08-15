@@ -23,6 +23,8 @@ const HUD = {
 } as const;
 
 const FACE_RATIO = 380 / 300;
+/** Breathing room between the preview frame and the face inside it. */
+const FRAME_PAD = 16;
 
 type Check = {
   label: string;
@@ -116,7 +118,10 @@ export default function ScanCapture() {
     });
   }, [allReady, firing, flash, router]);
 
-  const faceH = Math.max(0, Math.min(box.h - 24, (box.w - 40) * FACE_RATIO));
+  const faceH = Math.max(
+    0,
+    Math.min(box.h - FRAME_PAD * 2, (box.w - FRAME_PAD * 2 - 24) * FACE_RATIO),
+  );
   const faceW = faceH / FACE_RATIO;
 
   const haloScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.55] });
@@ -125,8 +130,7 @@ export default function ScanCapture() {
 
   return (
     <Screen
-      scroll={false}
-      padBottom={120}
+      padBottom={104}
       background={[palette.ink, palette.inkSoft, palette.ink]}
       contentStyle={styles.content}
     >
@@ -159,16 +163,24 @@ export default function ScanCapture() {
           setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })
         }
       >
-        <View style={styles.scrim} />
-        <LinearGradient
-          colors={gradients.scanOverlay as unknown as [string, string]}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={styles.scrimWash}
-          pointerEvents="none"
-        />
         {faceH > 60 ? (
-          <Animated.View style={{ opacity: intro }}>
+          // The frame hugs the preview rather than the whole column, so a short
+          // viewport shrinks the two together instead of stranding a small face
+          // inside a large empty box.
+          <Animated.View
+            style={[
+              styles.frame,
+              { width: faceW + FRAME_PAD * 2, height: faceH + FRAME_PAD * 2, opacity: intro },
+            ]}
+          >
+            <View style={styles.scrim} />
+            <LinearGradient
+              colors={gradients.scanOverlay as unknown as [string, string]}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.scrimWash}
+              pointerEvents="none"
+            />
             <FaceGuide width={faceW} height={faceH} guide />
           </Animated.View>
         ) : null}
@@ -347,7 +359,7 @@ function daysSince(iso: string): number {
   return Math.max(0, Math.round((to - from) / 86400000));
 }
 const styles = StyleSheet.create({
-  content: { flex: 1, paddingBottom: 104, paddingTop: spacing.sm },
+  content: { flexGrow: 1, paddingTop: spacing.sm },
   liveDot: {
     width: 7,
     height: 7,
@@ -355,12 +367,18 @@ const styles = StyleSheet.create({
     backgroundColor: palette.greenBright,
   },
   viewfinder: {
-    flex: 1,
-    minHeight: 110,
+    flexGrow: 1,
+    flexShrink: 1,
+    minHeight: 168,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.md,
     marginBottom: spacing.md,
+  },
+  frame: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.xxl,
   },
   scrim: {
     position: 'absolute',

@@ -24,11 +24,24 @@ npm run build:web  # -> dist/  (SPA, single index.html)
 npm run serve:web  # preview the build at http://localhost:3000
 ```
 
-`dist/` is a plain static site: drop it on EAS Hosting, Vercel, Netlify, S3, or GitHub Pages.
+`dist/` is a plain static site: drop it on EAS Hosting, Netlify, Vercel, S3, or GitHub Pages.
 
 ```bash
 npx eas-cli@latest deploy   # EAS Hosting, uses the dist/ export
 ```
+
+### Netlify
+
+[netlify.toml](netlify.toml) is committed — connect the repo and it builds with
+`npm run build:web` and publishes `dist/`. If you drag-and-drop the folder instead, the
+[public/_redirects](public/_redirects) file is copied into `dist/` by the export and does the
+same job.
+
+**Both files exist for one reason:** the app is a single-page app (`app.json` sets
+`web.output: "single"`), so only `/` exists as a real file. Every other path — `/insights`,
+`/product/p-serum-calming` — is resolved client-side by expo-router. Without a
+`/* /index.html 200` rewrite, reloading or deep-linking any route returns Netlify's 404.
+Do not remove either file.
 
 ### Native builds
 
@@ -75,15 +88,18 @@ src/
   theme/                   design tokens — the single source of colour/type/spacing
   components/ui/           Screen, Card, Button, Chip, Txt, ProgressBar …
   components/charts/       ScoreRing, LineChart, SkinRadar, WeekBars, Sparkline
-  components/brand/        Logo, ProductArt, FaceGuide — all SVG, zero image assets
+  components/brand/        Logo, ProductArt, FaceGuide
+assets/brand/              logo mark + face, cropped from marketing-assets/
   data/                    mock catalogue, taxonomy, persona, scans, chat scripts
   store/AppStore.tsx       React context + reducer (in-memory, resets on reload)
   lib/                     formatting, haptics, phone-frame insets
 ```
 
-**No product photography or stock imagery is used.** Product bottles, the face used in the scan
-flow, and the logo are all generated SVG driven by the design tokens, so the prototype has no
-licensing baggage and scales to any resolution.
+**No stock imagery is used.** The logo mark and the face in the scan flow are cropped from the
+campaign artwork in [marketing-assets/](marketing-assets/) — the logo has its background keyed to
+alpha so it works on light and dark surfaces. Everything else, including every product bottle, is
+generated SVG driven by the design tokens, so there is no licensing baggage and it scales to any
+resolution.
 
 See [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) for the component contract.
 
